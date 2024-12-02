@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unicorn Database</title>
+    <style>
+        .filter-group {
+            margin: 10px 0;
+        }
+        table {
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Unicorn Database</h1>
+    
+    <div class="filter-group">
+        <label>Name: <input type="text" id="nameFilter"></label>
+    </div>
+    
+    <div class="filter-group">
+        <label>Gender: 
+            <select id="genderFilter">
+                <option value="">All</option>
+                <option value="m">Male</option>
+                <option value="f">Female</option>
+            </select>
+        </label>
+    </div>
+    
+    <div class="filter-group">
+        <label>Weight Greater Than: <input type="number" id="weightGtFilter"></label>
+        <label>Weight Less Than: <input type="number" id="weightLtFilter"></label>
+    </div>
+    
+    <div class="filter-group">
+        <label>Vampires Greater Than: <input type="number" id="vampiresGtFilter"></label>
+        <label>Has Vampires: <input type="checkbox" id="vampiresExistsFilter"></label>
+    </div>
+    
+    <div class="filter-group">
+        <label>Vaccinated: <input type="checkbox" id="vaccinatedFilter"></label>
+    </div>
+    
+    <div class="filter-group">
+        <label>Sort by: 
+            <select id="sortField">
+                <option value="">None</option>
+                <option value="name">Name</option>
+                <option value="weight">Weight</option>
+                <option value="vampires">Vampires</option>
+            </select>
+            <select id="sortOrder">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+            </select>
+        </label>
+    </div>
+
+    <button id="searchBtn">Search Unicorns</button>
+
+    <div id="results">
+        <table id="unicornTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Weight</th>
+                    <th>Vampires</th>
+                    <th>Vaccinated</th>
+                    <th>Loves</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('searchBtn').addEventListener('click', async () => {
+            try {
+                const params = new URLSearchParams();
+                
+                const name = document.getElementById('nameFilter').value;
+                if (name) params.append('name', name);
+                
+                const gender = document.getElementById('genderFilter').value;
+                if (gender) params.append('gender', gender);
+                
+                const weightGt = document.getElementById('weightGtFilter').value;
+                if (weightGt) params.append('weightGreaterThan', weightGt);
+                
+                const weightLt = document.getElementById('weightLtFilter').value;
+                if (weightLt) params.append('weightLessThan', weightLt);
+                
+                const vampiresGt = document.getElementById('vampiresGtFilter').value;
+                if (vampiresGt) params.append('vampiresGreaterThan', vampiresGt);
+                
+                const vampiresExists = document.getElementById('vampiresExistsFilter').checked;
+                if (vampiresExists) params.append('vampiresExists', true);
+                
+                const vaccinated = document.getElementById('vaccinatedFilter').checked;
+                if (vaccinated) params.append('vaccinated', true);
+                
+                const sortField = document.getElementById('sortField').value;
+                const sortOrder = document.getElementById('sortOrder').value;
+                if (sortField) {
+                    params.append('sort', `${sortField}.${sortOrder}`);
+                }
+
+                const response = await fetch(`http://localhost:3000/unicorns?${params.toString()}`);
+                const unicorns = await response.json();
+                
+                const tbody = document.querySelector('#unicornTable tbody');
+                tbody.innerHTML = '';
+                
+                unicorns.forEach(unicorn => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${unicorn.name || ''}</td>
+                        <td>${unicorn.gender || ''}</td>
+                        <td>${unicorn.weight || ''}</td>
+                        <td>${unicorn.vampires || ''}</td>
+                        <td>${unicorn.vaccinated ? 'Yes' : 'No'}</td>
+                        <td>${unicorn.loves ? unicorn.loves.join(', ') : ''}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching unicorns:', error);
+                alert('Error fetching unicorns. Please try again.');
+            }
+        });
+    </script>
+</body>
+
+</html>
